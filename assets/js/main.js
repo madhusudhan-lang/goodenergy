@@ -131,54 +131,56 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // Contact form submission
 const contactForm = document.querySelector('.contact-form');
-if (contactForm) {
-  contactForm.addEventListener('submit', function(e) {
-    e.preventDefault();
+  if (contactForm) {
+    contactForm.addEventListener('submit', function(e) {
+      e.preventDefault();
 
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
+      // Check Google reCAPTCHA status
+      const recaptchaResponse = grecaptcha.getResponse();
+      if (!recaptchaResponse || recaptchaResponse.length === 0) {
+        alert('Please complete the reCAPTCHA challenge!');
+        return; // Stop here, do not send message
+      }
 
-    // Show loading state
-    submitBtn.textContent = 'Sending...';
-    submitBtn.disabled = true;
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
 
-    emailjs.sendForm('service_q3e9o0c', 'template_hzx3ecj', this)
-      .then(() => {
-        // Show success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'success-message';
-        successMessage.textContent = 'Thank you! Your message has been sent successfully.';
-        successMessage.style.cssText = `
-          background: #0a7d4f;
-          color: white;
-          padding: 1rem;
-          border-radius: 8px;
-          margin-top: 1rem;
-          text-align: center;
-        `;
+      // Show loading state
+      submitBtn.textContent = 'Sending...';
+      submitBtn.disabled = true;
 
-        this.appendChild(successMessage);
+      emailjs.sendForm('service_q3e9o0c', 'template_hzx3ecj', this)
+        .then(() => {
+          // Show success message
+          const successMessage = document.createElement('div');
+          successMessage.className = 'success-message';
+          successMessage.textContent = 'Thank you! Your message has been sent successfully.';
+          successMessage.style.cssText = `
+            background: #0a7d4f;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+          `;
+          this.appendChild(successMessage);
 
-        // Reset form
-        this.reset();
+          // Reset form and button
+          this.reset();
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
 
-        // Reset button
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-
-        // Remove success message after 5 seconds
-        setTimeout(() => {
-          successMessage.remove();
-        }, 5000);
-      }, (error) => {
-        alert('Failed to send message: ' + error.text);
-
-        // Reset button on failure
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-      });
-  });
-}
+          // Remove success message after 5 seconds
+          setTimeout(() => {
+            successMessage.remove();
+          }, 5000);
+        }, (error) => {
+          alert('Failed to send message: ' + error.text);
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        });
+    });
+  }
 
 
 // Scroll animations
